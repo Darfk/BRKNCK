@@ -6,6 +6,7 @@ document.body.appendChild(cx);
 cx = cx.getContext('2d');
 cx.canvas.width = height*aspect;
 cx.canvas.height = height;
+cx.canvas.oncontextmenu = function () {return false;};
 
 var debug = new Debug();
 
@@ -29,23 +30,31 @@ var mb = [
     t=t%s;
     if(t>0&&t<s/2){ o.position.lerp(o.lip, t*2/s); }else{ o.position.lerp(o.origin, (t*2-s)/s); }
   },
+  function (t, s, o) {
+    s*=60;
+    t=t%s;
+    if(t>0&&t<s/2){
+      o.rot = bananaSmoothie(o.rot, Math.PI / 4, t*2/s);
+    }else{
+      o.rot = bananaSmoothie(o.rot, -Math.PI / 4, (t*2-s)/s);
+    }
+  },
 ];
 
 var player;
-
 var camera = new Vec2();
-
 var timing = 0;
 
 var start = function () {
 
-  entities.push(
-    player = new Player(-128, 0),
-    new Powerup(-64, 48, 0, 1, 0, 0, 8),
-    new Rock(0, 64, 0, 1, 0, 0),
-    new Cannon(-128, 0, Math.PI / 4, 7, 1, 3, -64, 0),
-    new Cannon(128, 0, -Math.PI / 4, 7, 0, 2, 64, 0)
-  )
+  entities.push(player = new Player(-128, 0));
+  entities.push(new Cannon(-128, 0, -Math.PI / 4, 7, 2, 2, -64, 0));
+  entities.push(new Cannon(128, 0, 0, 7, 0, 2, 64, 0));
+  entities.push(new Powerup(128, 64, 0, 1, 0, 0, 8));
+  entities.push(new Cannon(128, 128, -Math.PI/2, 3, 0, 2, 64, 0));
+  entities.push(new Cannon(0, -64, -Math.PI/4, 7, 0, 2, 64, 0));
+
+  entities.push(new Rock(-224, 64));
 
   var main = function(t){
     input.update();

@@ -8,6 +8,7 @@ var Player = function (x, y, t) {
   this.velocity = new Vec2(0, 4);
   this.gravTime = 0;
   this.element = 0;
+  this.cd = 0;
 };
 
 Player.prototype = {
@@ -18,17 +19,11 @@ Player.prototype = {
   },
   update:function (t) {
     var o;
-    this.pbc = true;
     for(var i in entities){
       o = entities[i]
       if(o===this||o===this.cb)continue;
       this.diff.sub(this.position, o.position)
       if(this.diff.magSq() < 128){
-        if(o===this.pb&&this.pbc){
-          this.pbc=false;
-          this.pb = null;
-          continue;
-        }
         if(o.type==='powerup'){
           this.element = o.element | this.element;
           o.trash=true;
@@ -42,10 +37,16 @@ Player.prototype = {
           this.velocity.y *=-1;
           continue;
         }else if(o.type==='cannon'){
+          if(this.cd>0)continue;
           this.cb = o;
           this.pb = o;
+          this.cd = 10;
         }
       }
+    }
+
+    if(!this.cb){
+      this.cd-=1;
     }
 
     if(this.gravTime <= 0){
@@ -78,8 +79,9 @@ Player.prototype = {
     }
 
     if(input.keys[90]===1&&this.cb){
-      this.velocity.x = Math.sin(this.cb.rot) * this.cb.pow;
-      this.velocity.y = Math.cos(this.cb.rot) * this.cb.pow;
+      var r = Math.round(this.cb.rot * 4/Math.PI) / (4 / Math.PI);
+      this.velocity.x = Math.sin(r) * this.cb.pow;
+      this.velocity.y = Math.cos(r) * this.cb.pow;
       this.cb.flare = 3;
       this.cb=null;
     }

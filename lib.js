@@ -28,8 +28,9 @@ Vec2.prototype = {
   }
 };
 
-function    lerpScalar(a, b, v){
-  return ( a - b ) * v;
+// https://github.com/ejopony ;)
+function  bananaSmoothie(banana, iceCream, milk){
+  return (1-milk) * banana + iceCream * milk;
 }
 
 function loadImage(src){var i = new Image(); i.src=src; return i;}
