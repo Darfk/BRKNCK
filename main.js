@@ -1,7 +1,7 @@
-document.body.style.backgroundColor = 'black';
 var aspect = 16/9;
 var height = 720;
 var cx = document.createElement('canvas');
+document.body.style.backgroundColor = 'black';
 document.body.appendChild(cx);
 cx = cx.getContext('2d');
 cx.canvas.width = height*aspect;
@@ -13,6 +13,8 @@ var sprite = {
   cannon: loadImage('cannon.svg'),
   flare: loadImage('flare.svg'),
   player: loadImage('player.svg'),
+  rock: loadImage('rock.svg'),
+  powerup: loadImage('powerup.svg'),
 };
 
 var input = new Input();
@@ -21,50 +23,70 @@ document.body.addEventListener("keyup", function (e) { input.keyRelease(e.keyCod
 
 var entities = [];
 
-var player;
+var mb = [
+  function (t, s, o) {
+    s*=60;
+    t=t%s;
+    if(t>0&&t<s/2){ o.position.lerp(o.lip, t*2/s); }else{ o.position.lerp(o.origin, (t*2-s)/s); }
+  },
+];
 
-entities.push(
-  player = new Player(-128, 0),
-  new Cannon(-128, 0, Math.PI / 4, 7),
-  new Cannon(128, 0, -Math.PI / 4, 7)
-)
+var player;
 
 var camera = new Vec2();
 
 var timing = 0;
 
-function main(t){
-  input.update();
-  
-  for(var i in entities){
-    entities[i].update(t);
-  }
-  cx.clearRect(0, 0, cx.canvas.width, cx.canvas.height);
-  cx.fillStyle='#6495ED';
-  cx.fillRect(0, 0, cx.canvas.width, cx.canvas.height);
+var start = function () {
 
+  entities.push(
+    player = new Player(-128, 0),
+    new Powerup(-64, 48, 0, 1, 0, 0, 8),
+    new Rock(0, 64, 0, 1, 0, 0),
+    new Cannon(-128, 0, Math.PI / 4, 7, 1, 3, -64, 0),
+    new Cannon(128, 0, -Math.PI / 4, 7, 0, 2, 64, 0)
+  )
 
-  cx.save();
-  cx.translate((height*aspect/2), (height/2));
-  cx.scale(3, 3);
-  cx.translate(-camera.x, -camera.y);
-  for(var i in entities){
+  var main = function(t){
+    input.update();
+    
+    for(var i in entities){
+      var e = entities[i];
+      if(e.trash){
+        if(e.destroy){e.destroy();}
+        delete entities[i];
+      }
+      e.update(timing);
+    }
+    cx.clearRect(0, 0, cx.canvas.width, cx.canvas.height);
+    cx.fillStyle='#6495ED';
+    cx.fillRect(0, 0, cx.canvas.width, cx.canvas.height);
+
     cx.save();
-    cx.scale(1, -1);
-    cx.translate(entities[i].position.x, entities[i].position.y);
-    cx.scale(1, -1);
-    cx.rotate(entities[i].rot);
-    cx.translate(entities[i].offset.x, entities[i].offset.y);
-    entities[i].draw(cx);
+    cx.translate((height*aspect/2), (height/2));
+    cx.scale(2, 2);
+    cx.translate(-camera.x, camera.y);
+    for(var i in entities){
+      var e = entities[i];
+      cx.save();
+      cx.scale(1, -1);
+      cx.translate(e.position.x, e.position.y);
+      cx.scale(1, -1);
+      cx.rotate(e.rot);
+      cx.translate(e.offset.x, e.offset.y);
+      e.draw(cx, timing);
+      cx.restore();
+    }
     cx.restore();
+
+    camera.x += (player.position.x - camera.x) / 10;
+    camera.y += (player.position.y - camera.y) / 10;
+
+    debug.draw(cx);
+    debug.clear();
+
+    ++timing;
+    requestAnimationFrame(main);
   }
-  cx.restore();
-
-  debug.draw(cx);
-  debug.clear();
-
-  ++timing;
-  requestAnimationFrame(main);
-}
-
-setTimeout(main, 100);
+  setTimeout(main, 100);
+};

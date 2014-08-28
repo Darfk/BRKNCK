@@ -19,7 +19,18 @@ Vec2.prototype = {
     this.x = a.x;
     this.y = a.y;
   },
+  lerp:function(v, a){
+    this.x += ( v.x - this.x ) * a;
+    this.y += ( v.y - this.y ) * a;
+  },
+  dot:function(v){
+    return this.x * v.x + this.y * v.y;
+  }
 };
+
+function    lerpScalar(a, b, v){
+  return ( a - b ) * v;
+}
 
 function loadImage(src){var i = new Image(); i.src=src; return i;}
 
